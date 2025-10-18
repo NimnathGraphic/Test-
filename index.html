@@ -1,0 +1,2881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Time Tracker Pro v15</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
+            --shadow-xl: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: var(--gradient-1);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveGrid 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes moveGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.5s ease;
+            z-index: 1;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .copyright {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            z-index: 100;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .watermark {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            z-index: 100;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            padding: 10px 18px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+        
+        header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            box-shadow: var(--shadow-md);
+        }
+        
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        header h1 i {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: var(--shadow-md);
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 3px solid white;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        nav {
+            background: linear-gradient(to right, #34495e, #2c3e50);
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 18px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-btn:hover::before, .nav-btn.active::before {
+            width: 80%;
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(102, 126, 234, 0.2);
+        }
+        
+        .nav-btn i {
+            margin-right: 8px;
+        }
+        
+        .section {
+            display: none;
+            padding: 35px;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(to right, #eee, #fff) padding-box,
+                        var(--gradient-1) border-box;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .section-header h2 {
+            font-size: 26px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .form-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        label .optional {
+            color: #94a3b8;
+            font-size: 11px;
+            text-transform: lowercase;
+            font-style: italic;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input-wrapper input {
+            padding-right: 45px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .btn-info {
+            background: var(--gradient-3);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 25px;
+            overflow-x: auto;
+            display: block;
+        }
+
+        table thead, table tbody, table tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+        th {
+            background: var(--gradient-1);
+            color: white;
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background: linear-gradient(to right, #f8fafc, white);
+        }
+        
+        .message {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 18px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            min-width: 320px;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.4s ease, fadeOut 0.4s ease 4.6s;
+            backdrop-filter: blur(10px);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .login-container {
+            max-width: 450px;
+            margin: 100px auto;
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.5s ease;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--gradient-1);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .login-container h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .forgot-password-link {
+            display: block;
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-1);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .stat-card i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        
+        .stat-card p {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .breaks-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #f59e0b;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .break-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            border: 2px solid #fde68a;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .break-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 18px;
+            align-items: end;
+        }
+        
+        .hours-display {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 5px solid #10b981;
+            margin-top: 25px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .hours-display h3 {
+            color: #065f46;
+            font-size: 22px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .card h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .profile-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+            border: 2px solid #e2e8f0;
+            max-width: 800px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 35px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-avatar-container {
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 5px solid white;
+            position: relative;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 3px solid white;
+        }
+
+        .profile-avatar-upload:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .profile-avatar-upload i {
+            color: white;
+            font-size: 18px;
+        }
+
+        .profile-avatar-upload input {
+            display: none;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h2 {
+            color: var(--dark);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .profile-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .profile-detail i {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        .profile-detail strong {
+            color: var(--dark);
+            min-width: 100px;
+        }
+        
+        .multi-select {
+            min-height: 140px;
+        }
+        
+        .filter-section {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3b82f6;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .quick-action-btn {
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .quick-action-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .quick-action-btn i {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .activity-log {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .activity-item {
+            padding: 15px;
+            border-left: 3px solid var(--primary);
+            margin-bottom: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transform: translateX(5px);
+        }
+        
+        .activity-time {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: scaleIn 0.3s ease;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .timezone-selector {
+            position: relative;
+        }
+
+        .timezone-selector i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .timezone-selector select {
+            padding-left: 45px;
+            position: relative;
+        }
+
+        .shop-selector {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #bae6fd;
+        }
+
+        .shop-selector h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .particle {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle 4s infinite;
+        }
+
+        @keyframes float-particle {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        .data-backup-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #f59e0b;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-backup-section h4 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .form-row, .time-inputs, .break-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                padding: 20px 15px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .user-info {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            nav {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                padding: 15px 20px;
+                font-size: 14px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .stat-card h3 {
+                font-size: 2rem;
+            }
+            
+            .export-options {
+                flex-direction: column;
+            }
+
+            .export-options .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .section {
+                padding: 20px 15px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .copyright, .watermark {
+                position: relative;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            
+            .login-container {
+                margin: 20px auto;
+                padding: 30px 20px;
+                max-width: 100%;
+            }
+
+            .login-container h1 {
+                font-size: 26px;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+
+            .profile-info h2 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 12px 10px;
+            }
+
+            .message {
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+                max-width: none;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 15px;
+            }
+
+            header {
+                padding: 15px 10px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .section {
+                padding: 15px 10px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-card h3 {
+                font-size: 1.8rem;
+            }
+
+            .stat-card i {
+                font-size: 2.5rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .modal-content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clock"></i> Advanced Time Tracker Pro v15</h1>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <div id="userName">John Doe</div>
+                    <div id="userRole" style="font-size: 12px; opacity: 0.9;">Administrator</div>
+                </div>
+            </div>
+        </header>
+        
+        <nav>
+            <button class="nav-btn active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button class="nav-btn" data-section="time-entry"><i class="fas fa-play-circle"></i> Time Entry</button>
+            <button class="nav-btn" data-section="reports"><i class="fas fa-chart-bar"></i> Reports</button>
+            <button class="nav-btn" data-section="employees"><i class="fas fa-users"></i> Employees</button>
+            <button class="nav-btn" data-section="profile"><i class="fas fa-user-cog"></i> Profile</button>
+            <button class="nav-btn" data-section="settings"><i class="fas fa-cogs"></i> Settings</button>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </nav>
+        
+        <div class="section active" id="dashboard">
+            <div class="section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="totalHours">0</h3>
+                    <p>Total Hours This Week</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-user-clock"></i>
+                    <h3 id="activeEmployees">0</h3>
+                    <p>Active Employees</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h3 id="totalPayroll">$0</h3>
+                    <p>Total Payroll</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3 id="completedTasks">0</h3>
+                    <p>Completed Tasks</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="card" style="flex: 1;">
+                    <h3><i class="fas fa-chart-line"></i> Weekly Hours</h3>
+                    <canvas id="hoursChart" height="250"></canvas>
+                </div>
+                <div class="card" style="flex: 1;">
+                    <h3><i class="fas fa-tasks"></i> Recent Activity</h3>
+                    <div class="activity-log" id="activityLog">
+                        <!-- Activity items will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Pending Actions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Action</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingActions">
+                        <!-- Pending actions will be added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section" id="time-entry">
+            <div class="section-header">
+                <h2><i class="fas fa-play-circle"></i> Time Entry</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary" id="startTimerBtn"><i class="fas fa-play"></i> Start Timer</button>
+                    <button class="btn btn-danger" id="stopTimerBtn" disabled><i class="fas fa-stop"></i> Stop Timer</button>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="employeeSelect">Employee <span class="optional">(optional)</span></label>
+                        <select id="employeeSelect">
+                            <option value="">Select Employee</option>
+                            <option value="1">John Doe</option>
+                            <option value="2">Jane Smith</option>
+                            <option value="3">Robert Johnson</option>
+                            <option value="4">Emily Davis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectSelect">Project <span class="optional">(optional)</span></label>
+                        <select id="projectSelect">
+                            <option value="">Select Project</option>
+                            <option value="1">Website Redesign</option>
+                            <option value="2">Mobile App Development</option>
+                            <option value="3">Marketing Campaign</option>
+                            <option value="4">Client Support</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskSelect">Task <span class="optional">(optional)</span></label>
+                        <select id="taskSelect">
+                            <option value="">Select Task</option>
+                            <option value="1">Design</option>
+                            <option value="2">Development</option>
+                            <option value="3">Testing</option>
+                            <option value="4">Meeting</option>
+                            <option value="5">Research</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateInput">Date</label>
+                        <input type="date" id="dateInput" value="">
+                    </div>
+                </div>
+                
+                <div class="time-inputs">
+                    <div class="form-group">
+                        <label for="startTime">Start Time</label>
+                        <input type="time" id="startTime" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="endTime">End Time</label>
+                        <input type="time" id="endTime" value="17:00">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description <span class="optional">(optional)</span></label>
+                    <textarea id="description" rows="3" placeholder="Add a description of the work done..."></textarea>
+                </div>
+                
+                <div class="breaks-section">
+                    <h4 style="margin-bottom: 15px; color: #92400e;"><i class="fas fa-coffee"></i> Breaks</h4>
+                    <div id="breaksContainer">
+                        <!-- Break items will be added here -->
+                    </div>
+                    <button class="btn btn-sm btn-warning" id="addBreakBtn"><i class="fas fa-plus"></i> Add Break</button>
+                </div>
+                
+                <div class="hours-display">
+                    <h3>Total Hours: <span id="calculatedHours">0.00</span></h3>
+                </div>
+                
+                <div style="text-align: center; margin-top: 25px;">
+                    <button class="btn btn-success" id="saveTimeEntryBtn"><i class="fas fa-save"></i> Save Time Entry</button>
+                    <button class="btn btn-secondary" id="resetFormBtn"><i class="fas fa-redo"></i> Reset Form</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-history"></i> Recent Time Entries</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>Project</th>
+                            <th>Task</th>
+                            <th>Hours</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentEntries">
+                        <!-- Recent entries will be added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section" id="reports">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-bar"></i> Reports & Analytics</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary" id="generateReportBtn"><i class="fas fa-chart-pie"></i> Generate Report</button>
+                    <button class="btn btn-success" id="exportPDFBtn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                    <button class="btn btn-info" id="exportExcelBtn"><i class="fas fa-file-excel"></i> Export Excel</button>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h4 style="margin-bottom: 15px; color: #1e40af;"><i class="fas fa-filter"></i> Report Filters</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reportType">Report Type</label>
+                        <select id="reportType">
+                            <option value="daily">Daily Report</option>
+                            <option value="weekly">Weekly Report</option>
+                            <option value="monthly">Monthly Report</option>
+                            <option value="employee">Employee Report</option>
+                            <option value="project">Project Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateRange">Date Range</label>
+                        <select id="dateRange">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="thisWeek">This Week</option>
+                            <option value="lastWeek">Last Week</option>
+                            <option value="thisMonth">This Month</option>
+                            <option value="lastMonth">Last Month</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row" id="customDateRange" style="display: none;">
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="employeeFilter">Employee</label>
+                        <select id="employeeFilter">
+                            <option value="">All Employees</option>
+                            <option value="1">John Doe</option>
+                            <option value="2">Jane Smith</option>
+                            <option value="3">Robert Johnson</option>
+                            <option value="4">Emily Davis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="projectFilter">Project</label>
+                        <select id="projectFilter">
+                            <option value="">All Projects</option>
+                            <option value="1">Website Redesign</option>
+                            <option value="2">Mobile App Development</option>
+                            <option value="3">Marketing Campaign</option>
+                            <option value="4">Client Support</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-table"></i> Report Data</h3>
+                <table id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>Project</th>
+                            <th>Task</th>
+                            <th>Hours</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Report data will be added here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-chart-pie"></i> Visualizations</h3>
+                <div class="form-row">
+                    <div style="flex: 1;">
+                        <canvas id="reportChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section" id="employees">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Employee Management</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary" id="addEmployeeBtn"><i class="fas fa-user-plus"></i> Add Employee</button>
+                    <button class="btn btn-info" id="importEmployeesBtn"><i class="fas fa-file-import"></i> Import Employees</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-list"></i> Employee List</h3>
+                <table id="employeesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Employee data will be added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section" id="profile">
+            <div class="section-header">
+                <h2><i class="fas fa-user-cog"></i> User Profile</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary" id="saveProfileBtn"><i class="fas fa-save"></i> Save Profile</button>
+                </div>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-header">
+                    <div class="profile-avatar-container">
+                        <div class="profile-avatar" id="profileAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="profile-avatar-upload" id="avatarUploadBtn">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" id="avatarUpload" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profileName">John Doe</h2>
+                        <div class="profile-detail">
+                            <i class="fas fa-envelope"></i>
+                            <strong>Email:</strong> <span id="profileEmail">john.doe@example.com</span>
+                        </div>
+                        <div class="profile-detail">
+                            <i class="fas fa-briefcase"></i>
+                            <strong>Position:</strong> <span id="profilePosition">Administrator</span>
+                        </div>
+                        <div class="profile-detail">
+                            <i class="fas fa-building"></i>
+                            <strong>Department:</strong> <span id="profileDepartment">Management</span>
+                        </div>
+                        <div class="profile-detail">
+                            <i class="fas fa-calendar-alt"></i>
+                            <strong>Member Since:</strong> <span id="profileJoinDate">January 15, 2023</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profileFirstName">First Name</label>
+                        <input type="text" id="profileFirstName" value="John">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileLastName">Last Name</label>
+                        <input type="text" id="profileLastName" value="Doe">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profileEmailInput">Email</label>
+                        <input type="email" id="profileEmailInput" value="john.doe@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="profilePhone">Phone</label>
+                        <input type="tel" id="profilePhone" value="+1 (555) 123-4567">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profilePositionInput">Position</label>
+                        <input type="text" id="profilePositionInput" value="Administrator">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileDepartmentInput">Department</label>
+                        <input type="text" id="profileDepartmentInput" value="Management">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profileBio">Bio</label>
+                    <textarea id="profileBio" rows="4" placeholder="Tell us about yourself...">Experienced administrator with over 5 years in team management and time tracking systems.</textarea>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-lock"></i> Security Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="currentPassword" placeholder="Enter current password">
+                            <span class="password-toggle" id="toggleCurrentPassword"><i class="fas fa-eye"></i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="newPassword" placeholder="Enter new password">
+                            <span class="password-toggle" id="toggleNewPassword"><i class="fas fa-eye"></i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                        <span class="password-toggle" id="toggleConfirmPassword"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                <button class="btn btn-success" id="changePasswordBtn"><i class="fas fa-key"></i> Change Password</button>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="emailNotifications" checked> Email Notifications
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="smsNotifications"> SMS Notifications
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="weeklyReports" checked> Weekly Reports
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="projectUpdates" checked> Project Updates
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section" id="settings">
+            <div class="section-header">
+                <h2><i class="fas fa-cogs"></i> System Settings</h2>
+                <div class="export-options">
+                    <button class="btn btn-primary" id="saveSettingsBtn"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-clock"></i> Time Tracking Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="workdayStart">Workday Start Time</label>
+                        <input type="time" id="workdayStart" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="workdayEnd">Workday End Time</label>
+                        <input type="time" id="workdayEnd" value="17:00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lunchDuration">Lunch Duration (minutes)</label>
+                        <input type="number" id="lunchDuration" value="60" min="0" max="180">
+                    </div>
+                    <div class="form-group">
+                        <label for="breakDuration">Break Duration (minutes)</label>
+                        <input type="number" id="breakDuration" value="15" min="0" max="60">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="overtimeThreshold">Overtime Threshold (hours/day)</label>
+                        <input type="number" id="overtimeThreshold" value="8" min="1" max="24" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="weeklyOvertimeThreshold">Weekly Overtime Threshold (hours)</label>
+                        <input type="number" id="weeklyOvertimeThreshold" value="40" min="1" max="100" step="0.5">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-globe"></i> Regional Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="timezone">Timezone</label>
+                        <div class="timezone-selector">
+                            <i class="fas fa-globe-americas"></i>
+                            <select id="timezone">
+                                <option value="-12">(UTC-12:00) International Date Line West</option>
+                                <option value="-11">(UTC-11:00) Coordinated Universal Time-11</option>
+                                <option value="-10">(UTC-10:00) Hawaii</option>
+                                <option value="-9">(UTC-09:00) Alaska</option>
+                                <option value="-8" selected>(UTC-08:00) Pacific Time (US & Canada)</option>
+                                <option value="-7">(UTC-07:00) Mountain Time (US & Canada)</option>
+                                <option value="-6">(UTC-06:00) Central Time (US & Canada)</option>
+                                <option value="-5">(UTC-05:00) Eastern Time (US & Canada)</option>
+                                <option value="-4">(UTC-04:00) Atlantic Time (Canada)</option>
+                                <option value="0">(UTC+00:00) Dublin, Edinburgh, Lisbon, London</option>
+                                <option value="1">(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>
+                                <option value="2">(UTC+02:00) Istanbul, Athens, Bucharest, Helsinki</option>
+                                <option value="3">(UTC+03:00) Moscow, St. Petersburg, Volgograd</option>
+                                <option value="5.5">(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>
+                                <option value="8">(UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>
+                                <option value="9">(UTC+09:00) Osaka, Sapporo, Tokyo</option>
+                                <option value="12">(UTC+12:00) Auckland, Wellington</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateFormat">Date Format</label>
+                        <select id="dateFormat">
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+                            <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="timeFormat">Time Format</label>
+                        <select id="timeFormat">
+                            <option value="12">12-hour format</option>
+                            <option value="24">24-hour format</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">Currency</label>
+                        <select id="currency">
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-shield-alt"></i> Security Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sessionTimeout">Session Timeout (minutes)</label>
+                        <input type="number" id="sessionTimeout" value="60" min="5" max="480">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginAttempts">Max Login Attempts</label>
+                        <input type="number" id="loginAttempts" value="5" min="1" max="10">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="passwordExpiry">Password Expiry (days)</label>
+                        <input type="number" id="passwordExpiry" value="90" min="7" max="365">
+                    </div>
+                    <div class="form-group">
+                        <label for="twoFactorAuth">Two-Factor Authentication</label>
+                        <select id="twoFactorAuth">
+                            <option value="disabled">Disabled</option>
+                            <option value="enabled">Enabled</option>
+                            <option value="required">Required for all users</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-backup-section">
+                <h4><i class="fas fa-database"></i> Data Management</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="backupFrequency">Automatic Backup Frequency</label>
+                        <select id="backupFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="backupRetention">Backup Retention (days)</label>
+                        <input type="number" id="backupRetention" value="30" min="1" max="365">
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <div class="quick-action-btn" id="backupNowBtn">
+                        <i class="fas fa-download"></i>
+                        <div>Backup Now</div>
+                    </div>
+                    <div class="quick-action-btn" id="restoreBackupBtn">
+                        <i class="fas fa-upload"></i>
+                        <div>Restore Backup</div>
+                    </div>
+                    <div class="quick-action-btn" id="exportDataBtn">
+                        <i class="fas fa-file-export"></i>
+                        <div>Export Data</div>
+                    </div>
+                    <div class="quick-action-btn" id="clearDataBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <div>Clear Data</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="copyright">
+        &copy; 2023 Advanced Time Tracker Pro v15. All rights reserved.
+    </div>
+    
+    <div class="watermark">
+        Premium Edition
+    </div>
+    
+    <!-- Login Modal -->
+    <div class="modal active" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-lock"></i> Login to Time Tracker</h2>
+                <button class="modal-close" id="closeLoginModal">&times;</button>
+            </div>
+            <div class="login-container" style="margin: 0; box-shadow: none; padding: 0;">
+                <h1>Advanced Time Tracker Pro</h1>
+                <p style="color: #64748b; margin-bottom: 25px;">Enter your credentials to access the system</p>
+                
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
+                        <span class="password-toggle" id="toggleLoginPassword"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <a class="forgot-password-link" id="forgotPasswordLink">Forgot Password?</a>
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn btn-primary" id="loginBtn" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center; color: #64748b; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> Demo: Use any email and password to login
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Forgot Password Modal -->
+    <div class="modal" id="forgotPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Reset Password</h2>
+                <button class="modal-close" id="closeForgotPasswordModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="resetEmail">Email Address</label>
+                <input type="email" id="resetEmail" placeholder="Enter your email address">
+            </div>
+            <div class="form-group">
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" id="sendResetLinkBtn" style="width: 100%;">
+                    <i class="fas fa-paper-plane"></i> Send Reset Link
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Employee Modal -->
+    <div class="modal" id="addEmployeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Add New Employee</h2>
+                <button class="modal-close" id="closeAddEmployeeModal">&times;</button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="newEmployeeFirstName">First Name</label>
+                    <input type="text" id="newEmployeeFirstName" placeholder="Enter first name">
+                </div>
+                <div class="form-group">
+                    <label for="newEmployeeLastName">Last Name</label>
+                    <input type="text" id="newEmployeeLastName" placeholder="Enter last name">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="newEmployeeEmail">Email</label>
+                    <input type="email" id="newEmployeeEmail" placeholder="Enter email address">
+                </div>
+                <div class="form-group">
+                    <label for="newEmployeePosition">Position</label>
+                    <input type="text" id="newEmployeePosition" placeholder="Enter position">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="newEmployeeDepartment">Department</label>
+                    <select id="newEmployeeDepartment">
+                        <option value="">Select Department</option>
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Support">Support</option>
+                        <option value="Management">Management</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newEmployeeStatus">Status</label>
+                    <select id="newEmployeeStatus">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="On Leave">On Leave</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="newEmployeeHourlyRate">Hourly Rate ($)</label>
+                <input type="number" id="newEmployeeHourlyRate" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div style="text-align: right; margin-top: 25px;">
+                <button class="btn btn-secondary" id="cancelAddEmployeeBtn">Cancel</button>
+                <button class="btn btn-success" id="saveEmployeeBtn">Save Employee</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.section');
+        const loginModal = document.getElementById('loginModal');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        const addEmployeeModal = document.getElementById('addEmployeeModal');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+        const sendResetLinkBtn = document.getElementById('sendResetLinkBtn');
+        const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+        const closeAddEmployeeModal = document.getElementById('closeAddEmployeeModal');
+        const cancelAddEmployeeBtn = document.getElementById('cancelAddEmployeeBtn');
+        const saveEmployeeBtn = document.getElementById('saveEmployeeBtn');
+        const startTimerBtn = document.getElementById('startTimerBtn');
+        const stopTimerBtn = document.getElementById('stopTimerBtn');
+        const saveTimeEntryBtn = document.getElementById('saveTimeEntryBtn');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const addBreakBtn = document.getElementById('addBreakBtn');
+        const dateRangeSelect = document.getElementById('dateRange');
+        const customDateRange = document.getElementById('customDateRange');
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        const exportPDFBtn = document.getElementById('exportPDFBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const avatarUploadBtn = document.getElementById('avatarUpload');
+        const passwordToggles = document.querySelectorAll('.password-toggle');
+        
+        // State variables
+        let isLoggedIn = false;
+        let timerInterval = null;
+        let timerStartTime = null;
+        let currentTimerSeconds = 0;
+        let breaks = [];
+        
+        // Initialize the application
+        function init() {
+            // Set current date in date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateInput').value = today;
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            
+            // Add event listeners
+            setupEventListeners();
+            
+            // Load initial data
+            loadDashboardData();
+            loadRecentEntries();
+            loadEmployees();
+            loadReports();
+            
+            // Show login modal initially
+            loginModal.classList.add('active');
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation
+            navBtns.forEach(btn => {
+                if (!btn.id) {
+                    btn.addEventListener('click', () => {
+                        const sectionId = btn.getAttribute('data-section');
+                        switchSection(sectionId);
+                        
+                        // Update active nav button
+                        navBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                }
+            });
+            
+            // Login and authentication
+            loginBtn.addEventListener('click', handleLogin);
+            closeLoginModal.addEventListener('click', () => loginModal.classList.remove('active'));
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Forgot password flow
+            forgotPasswordLink.addEventListener('click', () => {
+                loginModal.classList.remove('active');
+                forgotPasswordModal.classList.add('active');
+            });
+            
+            closeForgotPasswordModal.addEventListener('click', () => {
+                forgotPasswordModal.classList.remove('active');
+                loginModal.classList.add('active');
+            });
+            
+            sendResetLinkBtn.addEventListener('click', () => {
+                showMessage('Password reset link sent to your email!', 'success');
+                forgotPasswordModal.classList.remove('active');
+                loginModal.classList.add('active');
+            });
+            
+            // Employee management
+            addEmployeeBtn.addEventListener('click', () => addEmployeeModal.classList.add('active'));
+            closeAddEmployeeModal.addEventListener('click', () => addEmployeeModal.classList.remove('active'));
+            cancelAddEmployeeBtn.addEventListener('click', () => addEmployeeModal.classList.remove('active'));
+            saveEmployeeBtn.addEventListener('click', handleSaveEmployee);
+            
+            // Time tracking
+            startTimerBtn.addEventListener('click', startTimer);
+            stopTimerBtn.addEventListener('click', stopTimer);
+            saveTimeEntryBtn.addEventListener('click', saveTimeEntry);
+            resetFormBtn.addEventListener('click', resetTimeEntryForm);
+            addBreakBtn.addEventListener('click', addBreak);
+            
+            // Reports
+            dateRangeSelect.addEventListener('change', toggleCustomDateRange);
+            generateReportBtn.addEventListener('click', generateReport);
+            exportPDFBtn.addEventListener('click', exportReportPDF);
+            exportExcelBtn.addEventListener('click', exportReportExcel);
+            
+            // Profile and settings
+            saveProfileBtn.addEventListener('click', saveProfile);
+            changePasswordBtn.addEventListener('click', changePassword);
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            avatarUploadBtn.addEventListener('change', handleAvatarUpload);
+            
+            // Password toggles
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('input');
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // Calculate hours when time inputs change
+            document.getElementById('startTime').addEventListener('change', calculateHours);
+            document.getElementById('endTime').addEventListener('change', calculateHours);
+        }
+        
+        // Switch between sections
+        function switchSection(sectionId) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+        
+        // Handle user login
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('Please enter both email and password', 'error');
+                return;
+            }
+            
+            // Simulate login process
+            loginBtn.innerHTML = '<div class="loading"></div> Logging in...';
+            
+            setTimeout(() => {
+                isLoggedIn = true;
+                loginModal.classList.remove('active');
+                showMessage('Login successful! Welcome back.', 'success');
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                
+                // Update user info based on login
+                document.getElementById('userName').textContent = 'John Doe';
+                document.getElementById('userRole').textContent = 'Administrator';
+                document.getElementById('profileName').textContent = 'John Doe';
+                document.getElementById('profileEmail').textContent = email;
+                document.getElementById('profileEmailInput').value = email;
+            }, 1500);
+        }
+        
+        // Handle user logout
+        function handleLogout() {
+            isLoggedIn = false;
+            loginModal.classList.add('active');
+            showMessage('You have been logged out successfully.', 'success');
+            
+            // Reset form
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+        
+        // Handle saving a new employee
+        function handleSaveEmployee() {
+            const firstName = document.getElementById('newEmployeeFirstName').value;
+            const lastName = document.getElementById('newEmployeeLastName').value;
+            const email = document.getElementById('newEmployeeEmail').value;
+            const position = document.getElementById('newEmployeePosition').value;
+            const department = document.getElementById('newEmployeeDepartment').value;
+            const status = document.getElementById('newEmployeeStatus').value;
+            const hourlyRate = document.getElementById('newEmployeeHourlyRate').value;
+            
+            if (!firstName || !lastName || !email || !position || !department) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // In a real app, you would save to a database
+            // For demo, we'll just show a success message
+            showMessage(`Employee ${firstName} ${lastName} added successfully!`, 'success');
+            addEmployeeModal.classList.remove('active');
+            
+            // Reset form
+            document.getElementById('newEmployeeFirstName').value = '';
+            document.getElementById('newEmployeeLastName').value = '';
+            document.getElementById('newEmployeeEmail').value = '';
+            document.getElementById('newEmployeePosition').value = '';
+            document.getElementById('newEmployeeDepartment').value = '';
+            document.getElementById('newEmployeeStatus').value = 'Active';
+            document.getElementById('newEmployeeHourlyRate').value = '';
+            
+            // Refresh employee list
+            loadEmployees();
+        }
+        
+        // Start the timer
+        function startTimer() {
+            if (timerInterval) return;
+            
+            timerStartTime = new Date();
+            startTimerBtn.disabled = true;
+            stopTimerBtn.disabled = false;
+            
+            // Update timer every second
+            timerInterval = setInterval(() => {
+                currentTimerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+            
+            showMessage('Timer started!', 'success');
+        }
+        
+        // Stop the timer
+        function stopTimer() {
+            if (!timerInterval) return;
+            
+            clearInterval(timerInterval);
+            timerInterval = null;
+            
+            // Set the time inputs based on timer
+            const now = new Date();
+            const startTime = timerStartTime.toTimeString().substring(0, 5);
+            const endTime = now.toTimeString().substring(0, 5);
+            
+            document.getElementById('startTime').value = startTime;
+            document.getElementById('endTime').value = endTime;
+            
+            startTimerBtn.disabled = false;
+            stopTimerBtn.disabled = true;
+            
+            calculateHours();
+            showMessage('Timer stopped! Time entry updated.', 'success');
+        }
+        
+        // Update the timer display
+        function updateTimerDisplay() {
+            const hours = Math.floor(currentTimerSeconds / 3600);
+            const minutes = Math.floor((currentTimerSeconds % 3600) / 60);
+            const seconds = currentTimerSeconds % 60;
+            
+            // In a real app, you would update a timer display element
+            console.log(`Timer: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }
+        
+        // Save a time entry
+        function saveTimeEntry() {
+            const employee = document.getElementById('employeeSelect').value;
+            const project = document.getElementById('projectSelect').value;
+            const task = document.getElementById('taskSelect').value;
+            const date = document.getElementById('dateInput').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const description = document.getElementById('description').value;
+            const hours = document.getElementById('calculatedHours').textContent;
+            
+            if (!date || !startTime || !endTime) {
+                showMessage('Please fill in date, start time, and end time', 'error');
+                return;
+            }
+            
+            // In a real app, you would save to a database
+            // For demo, we'll just show a success message
+            showMessage('Time entry saved successfully!', 'success');
+            
+            // Reset form
+            resetTimeEntryForm();
+            
+            // Refresh recent entries
+            loadRecentEntries();
+        }
+        
+        // Reset the time entry form
+        function resetTimeEntryForm() {
+            document.getElementById('employeeSelect').value = '';
+            document.getElementById('projectSelect').value = '';
+            document.getElementById('taskSelect').value = '';
+            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+            document.getElementById('startTime').value = '09:00';
+            document.getElementById('endTime').value = '17:00';
+            document.getElementById('description').value = '';
+            document.getElementById('calculatedHours').textContent = '0.00';
+            
+            // Clear breaks
+            breaks = [];
+            document.getElementById('breaksContainer').innerHTML = '';
+        }
+        
+        // Add a break to the time entry
+        function addBreak() {
+            const breakId = Date.now();
+            breaks.push({
+                id: breakId,
+                start: '12:00',
+                end: '13:00',
+                duration: 60
+            });
+            
+            const breakItem = document.createElement('div');
+            breakItem.className = 'break-item';
+            breakItem.innerHTML = `
+                <div class="break-inputs">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" class="break-start" value="12:00" data-id="${breakId}">
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" class="break-end" value="13:00" data-id="${breakId}">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-danger btn-sm remove-break" data-id="${breakId}"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('breaksContainer').appendChild(breakItem);
+            
+            // Add event listeners to the new break inputs
+            breakItem.querySelector('.break-start').addEventListener('change', function() {
+                updateBreakTime(this.dataset.id, 'start', this.value);
+            });
+            
+            breakItem.querySelector('.break-end').addEventListener('change', function() {
+                updateBreakTime(this.dataset.id, 'end', this.value);
+            });
+            
+            breakItem.querySelector('.remove-break').addEventListener('click', function() {
+                removeBreak(this.dataset.id);
+            });
+            
+            calculateHours();
+        }
+        
+        // Update break time
+        function updateBreakTime(breakId, type, value) {
+            const breakItem = breaks.find(b => b.id == breakId);
+            if (breakItem) {
+                breakItem[type] = value;
+                calculateHours();
+            }
+        }
+        
+        // Remove a break
+        function removeBreak(breakId) {
+            breaks = breaks.filter(b => b.id != breakId);
+            document.querySelector(`.break-item [data-id="${breakId}"]`).closest('.break-item').remove();
+            calculateHours();
+        }
+        
+        // Calculate total hours based on inputs
+        function calculateHours() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            if (!startTime || !endTime) {
+                document.getElementById('calculatedHours').textContent = '0.00';
+                return;
+            }
+            
+            // Parse times
+            const start = parseTime(startTime);
+            const end = parseTime(endTime);
+            
+            // Calculate difference in minutes
+            let diffMinutes = (end - start) / (1000 * 60);
+            
+            // Subtract breaks
+            breaks.forEach(breakItem => {
+                const breakStart = parseTime(breakItem.start);
+                const breakEnd = parseTime(breakItem.end);
+                const breakDuration = (breakEnd - breakStart) / (1000 * 60);
+                diffMinutes -= breakDuration;
+            });
+            
+            // Convert to hours
+            const hours = Math.max(0, diffMinutes / 60);
+            document.getElementById('calculatedHours').textContent = hours.toFixed(2);
+        }
+        
+        // Parse time string to Date object
+        function parseTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+        
+        // Toggle custom date range visibility
+        function toggleCustomDateRange() {
+            if (dateRangeSelect.value === 'custom') {
+                customDateRange.style.display = 'grid';
+            } else {
+                customDateRange.style.display = 'none';
+            }
+        }
+        
+        // Generate report based on filters
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const dateRange = document.getElementById('dateRange').value;
+            const employee = document.getElementById('employeeFilter').value;
+            const project = document.getElementById('projectFilter').value;
+            
+            // Show loading state
+            generateReportBtn.innerHTML = '<div class="loading"></div> Generating...';
+            
+            // Simulate report generation
+            setTimeout(() => {
+                let reportData = [];
+                
+                // Generate sample data based on report type
+                if (reportType === 'daily') {
+                    reportData = generateDailyReport();
+                } else if (reportType === 'weekly') {
+                    reportData = generateWeeklyReport();
+                } else if (reportType === 'monthly') {
+                    reportData = generateMonthlyReport();
+                } else if (reportType === 'employee') {
+                    reportData = generateEmployeeReport();
+                } else if (reportType === 'project') {
+                    reportData = generateProjectReport();
+                }
+                
+                // Filter data based on selections
+                if (employee) {
+                    reportData = reportData.filter(entry => entry.employeeId == employee);
+                }
+                
+                if (project) {
+                    reportData = reportData.filter(entry => entry.projectId == project);
+                }
+                
+                // Display report data
+                displayReportData(reportData);
+                
+                // Reset button
+                generateReportBtn.innerHTML = '<i class="fas fa-chart-pie"></i> Generate Report';
+                
+                showMessage('Report generated successfully!', 'success');
+            }, 1500);
+        }
+        
+        // Generate sample daily report data
+        function generateDailyReport() {
+            return [
+                { date: '2023-10-01', employee: 'John Doe', project: 'Website Redesign', task: 'Design', hours: 7.5, description: 'Homepage layout design' },
+                { date: '2023-10-01', employee: 'Jane Smith', project: 'Mobile App Development', task: 'Development', hours: 8.0, description: 'User authentication implementation' },
+                { date: '2023-10-01', employee: 'Robert Johnson', project: 'Marketing Campaign', task: 'Research', hours: 6.5, description: 'Competitor analysis' },
+                { date: '2023-10-01', employee: 'Emily Davis', project: 'Client Support', task: 'Meeting', hours: 2.0, description: 'Weekly client check-in' }
+            ];
+        }
+        
+        // Generate sample weekly report data
+        function generateWeeklyReport() {
+            return [
+                { date: '2023-10-01', employee: 'John Doe', project: 'Website Redesign', task: 'Design', hours: 7.5, description: 'Homepage layout design' },
+                { date: '2023-10-02', employee: 'John Doe', project: 'Website Redesign', task: 'Development', hours: 6.0, description: 'Frontend implementation' },
+                { date: '2023-10-03', employee: 'John Doe', project: 'Website Redesign', task: 'Testing', hours: 4.5, description: 'Cross-browser testing' },
+                { date: '2023-10-04', employee: 'Jane Smith', project: 'Mobile App Development', task: 'Development', hours: 8.0, description: 'User authentication implementation' },
+                { date: '2023-10-05', employee: 'Jane Smith', project: 'Mobile App Development', task: 'Design', hours: 7.0, description: 'UI/UX improvements' }
+            ];
+        }
+        
+        // Generate sample monthly report data
+        function generateMonthlyReport() {
+            const reportData = [];
+            const employees = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis'];
+            const projects = ['Website Redesign', 'Mobile App Development', 'Marketing Campaign', 'Client Support'];
+            const tasks = ['Design', 'Development', 'Testing', 'Meeting', 'Research'];
+            
+            for (let i = 1; i <= 30; i++) {
+                const date = `2023-10-${i.toString().padStart(2, '0')}`;
+                const employee = employees[Math.floor(Math.random() * employees.length)];
+                const project = projects[Math.floor(Math.random() * projects.length)];
+                const task = tasks[Math.floor(Math.random() * tasks.length)];
+                const hours = (Math.random() * 4 + 4).toFixed(1);
+                const description = `Work on ${project} - ${task}`;
+                
+                reportData.push({
+                    date,
+                    employee,
+                    project,
+                    task,
+                    hours: parseFloat(hours),
+                    description
+                });
+            }
+            
+            return reportData;
+        }
+        
+        // Generate sample employee report data
+        function generateEmployeeReport() {
+            return [
+                { date: '2023-10-01', employee: 'John Doe', project: 'Website Redesign', task: 'Design', hours: 7.5, description: 'Homepage layout design' },
+                { date: '2023-10-02', employee: 'John Doe', project: 'Website Redesign', task: 'Development', hours: 6.0, description: 'Frontend implementation' },
+                { date: '2023-10-03', employee: 'John Doe', project: 'Website Redesign', task: 'Testing', hours: 4.5, description: 'Cross-browser testing' },
+                { date: '2023-10-04', employee: 'John Doe', project: 'Mobile App Development', task: 'Design', hours: 3.5, description: 'App icon design' },
+                { date: '2023-10-05', employee: 'John Doe', project: 'Client Support', task: 'Meeting', hours: 2.0, description: 'Client feedback session' }
+            ];
+        }
+        
+        // Generate sample project report data
+        function generateProjectReport() {
+            return [
+                { date: '2023-10-01', employee: 'John Doe', project: 'Website Redesign', task: 'Design', hours: 7.5, description: 'Homepage layout design' },
+                { date: '2023-10-02', employee: 'Jane Smith', project: 'Website Redesign', task: 'Development', hours: 6.0, description: 'Frontend implementation' },
+                { date: '2023-10-03', employee: 'Robert Johnson', project: 'Website Redesign', task: 'Testing', hours: 4.5, description: 'Cross-browser testing' },
+                { date: '2023-10-04', employee: 'Emily Davis', project: 'Website Redesign', task: 'Design', hours: 5.5, description: 'Mobile responsive design' },
+                { date: '2023-10-05', employee: 'John Doe', project: 'Website Redesign', task: 'Development', hours: 7.0, description: 'Backend integration' }
+            ];
+        }
+        
+        // Display report data in the table
+        function displayReportData(data) {
+            const tbody = document.querySelector('#reportTable tbody');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No data found for the selected filters</td></tr>';
+                return;
+            }
+            
+            data.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.employee}</td>
+                    <td>${entry.project}</td>
+                    <td>${entry.task}</td>
+                    <td>${entry.hours}</td>
+                    <td>${entry.description}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Export report to PDF
+        function exportReportPDF() {
+            // In a real app, you would use jsPDF to generate a PDF
+            showMessage('PDF export functionality would be implemented here', 'success');
+            
+            // This is a placeholder for the actual PDF generation code
+            // const { jsPDF } = window.jspdf;
+            // const doc = new jsPDF();
+            // doc.text('Time Tracking Report', 20, 20);
+            // doc.save('time-report.pdf');
+        }
+        
+        // Export report to Excel
+        function exportReportExcel() {
+            // In a real app, you would use SheetJS to generate an Excel file
+            showMessage('Excel export functionality would be implemented here', 'success');
+            
+            // This is a placeholder for the actual Excel generation code
+            // const wb = XLSX.utils.book_new();
+            // const ws = XLSX.utils.json_to_sheet(reportData);
+            // XLSX.utils.book_append_sheet(wb, ws, 'Time Report');
+            // XLSX.writeFile(wb, 'time-report.xlsx');
+        }
+        
+        // Save profile changes
+        function saveProfile() {
+            const firstName = document.getElementById('profileFirstName').value;
+            const lastName = document.getElementById('profileLastName').value;
+            const email = document.getElementById('profileEmailInput').value;
+            const phone = document.getElementById('profilePhone').value;
+            const position = document.getElementById('profilePositionInput').value;
+            const department = document.getElementById('profileDepartmentInput').value;
+            const bio = document.getElementById('profileBio').value;
+            
+            // Update profile display
+            document.getElementById('profileName').textContent = `${firstName} ${lastName}`;
+            document.getElementById('profileEmail').textContent = email;
+            document.getElementById('profilePosition').textContent = position;
+            document.getElementById('profileDepartment').textContent = department;
+            
+            // Update user info in header
+            document.getElementById('userName').textContent = `${firstName} ${lastName}`;
+            
+            showMessage('Profile updated successfully!', 'success');
+        }
+        
+        // Change password
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showMessage('Please fill in all password fields', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showMessage('New passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showMessage('New password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            // In a real app, you would verify current password and update it
+            showMessage('Password changed successfully!', 'success');
+            
+            // Clear password fields
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+        
+        // Save system settings
+        function saveSettings() {
+            // In a real app, you would save these settings to a database
+            showMessage('Settings saved successfully!', 'success');
+        }
+        
+        // Handle avatar upload
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatar = document.getElementById('profileAvatar');
+                    avatar.innerHTML = `<img src="${e.target.result}" alt="Profile Avatar">`;
+                    
+                    // Also update the user avatar in header
+                    const userAvatar = document.getElementById('userAvatar');
+                    userAvatar.innerHTML = `<img src="${e.target.result}" alt="User Avatar">`;
+                };
+                reader.readAsDataURL(file);
+                
+                showMessage('Profile picture updated successfully!', 'success');
+            }
+        }
+        
+        // Load dashboard data
+        function loadDashboardData() {
+            // Update stats
+            document.getElementById('totalHours').textContent = '38.5';
+            document.getElementById('activeEmployees').textContent = '4';
+            document.getElementById('totalPayroll').textContent = '$2,450.00';
+            document.getElementById('completedTasks').textContent = '24';
+            
+            // Load activity log
+            const activityLog = document.getElementById('activityLog');
+            activityLog.innerHTML = '';
+            
+            const activities = [
+                { time: '10:30 AM', action: 'John Doe started working on Website Redesign' },
+                { time: '10:15 AM', action: 'Jane Smith completed Mobile App authentication' },
+                { time: '09:45 AM', action: 'Robert Johnson submitted weekly timesheet' },
+                { time: '09:30 AM', action: 'Emily Davis started client support session' },
+                { time: 'Yesterday', action: 'System backup completed successfully' }
+            ];
+            
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-time">${activity.time}</div>
+                    <div>${activity.action}</div>
+                `;
+                activityLog.appendChild(item);
+            });
+            
+            // Load pending actions
+            const pendingActions = document.getElementById('pendingActions');
+            pendingActions.innerHTML = '';
+            
+            const actions = [
+                { employee: 'John Doe', action: 'Timesheet Approval', date: '2023-10-05', status: 'Pending' },
+                { employee: 'Jane Smith', action: 'Overtime Request', date: '2023-10-04', status: 'Pending' },
+                { employee: 'Robert Johnson', action: 'Leave Request', date: '2023-10-03', status: 'Pending' }
+            ];
+            
+            actions.forEach(action => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${action.employee}</td>
+                    <td>${action.action}</td>
+                    <td>${action.date}</td>
+                    <td><span class="badge badge-warning">${action.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                        <button class="btn btn-sm btn-danger"><i class="fas fa-times"></i></button>
+                    </td>
+                `;
+                pendingActions.appendChild(row);
+            });
+        }
+        
+        // Load recent time entries
+        function loadRecentEntries() {
+            const recentEntries = document.getElementById('recentEntries');
+            recentEntries.innerHTML = '';
+            
+            const entries = [
+                { date: '2023-10-05', employee: 'John Doe', project: 'Website Redesign', task: 'Design', hours: 7.5 },
+                { date: '2023-10-05', employee: 'Jane Smith', project: 'Mobile App Development', task: 'Development', hours: 8.0 },
+                { date: '2023-10-04', employee: 'Robert Johnson', project: 'Marketing Campaign', task: 'Research', hours: 6.5 },
+                { date: '2023-10-04', employee: 'Emily Davis', project: 'Client Support', task: 'Meeting', hours: 3.0 },
+                { date: '2023-10-03', employee: 'John Doe', project: 'Website Redesign', task: 'Development', hours: 6.0 }
+            ];
+            
+            entries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${entry.employee}</td>
+                    <td>${entry.project}</td>
+                    <td>${entry.task}</td>
+                    <td>${entry.hours}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                recentEntries.appendChild(row);
+            });
+        }
+        
+        // Load employees
+        function loadEmployees() {
+            const employeesTable = document.querySelector('#employeesTable tbody');
+            employeesTable.innerHTML = '';
+            
+            const employees = [
+                { id: 1, name: 'John Doe', email: 'john.doe@example.com', position: 'Senior Developer', department: 'Development', status: 'Active' },
+                { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', position: 'UI/UX Designer', department: 'Design', status: 'Active' },
+                { id: 3, name: 'Robert Johnson', email: 'robert.johnson@example.com', position: 'Marketing Specialist', department: 'Marketing', status: 'Active' },
+                { id: 4, name: 'Emily Davis', email: 'emily.davis@example.com', position: 'Customer Support', department: 'Support', status: 'On Leave' }
+            ];
+            
+            employees.forEach(emp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${emp.id}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.email}</td>
+                    <td>${emp.position}</td>
+                    <td>${emp.department}</td>
+                    <td><span class="badge ${emp.status === 'Active' ? 'badge-success' : 'badge-warning'}">${emp.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                employeesTable.appendChild(row);
+            });
+        }
+        
+        // Load reports
+        function loadReports() {
+            // This would load initial report data
+            // For now, we'll just initialize with empty state
+        }
+        
+        // Show message to user
+        function showMessage(text, type) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Create new message
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            document.body.appendChild(message);
+            
+            // Remove message after animation
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 5000);
+        }
+        
+        // Generate random particles for background
+        function generateParticles() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.style.position = 'fixed';
+            particlesContainer.style.top = '0';
+            particlesContainer.style.left = '0';
+            particlesContainer.style.width = '100%';
+            particlesContainer.style.height = '100%';
+            particlesContainer.style.pointerEvents = 'none';
+            particlesContainer.style.zIndex = '0';
+            document.body.appendChild(particlesContainer);
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.width = `${Math.random() * 10 + 5}px`;
+                particle.style.height = particle.style.width;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            generateParticles();
+        });
+    </script>
+</body>
+</html>
